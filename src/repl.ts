@@ -1,4 +1,5 @@
 import { createInterface } from "readline";
+import { getCommands } from "./commands.js";
 
 export function startREPL() {
   const rl = createInterface({
@@ -17,15 +18,31 @@ export function startREPL() {
     }
 
     const commandName = words[0];
-    console.log(`Your command was: ${commandName}`);
+
+    const commands = getCommands();
+    const cmd = commands[commandName];
+    if (!cmd) {
+      console.log(
+        `Unknown command: "${commandName}". Type "help" for a list of commands.`,
+      );
+      rl.prompt();
+      return;
+    }
+
+    try {
+      cmd.callback(commands);
+    } catch (e) {
+      console.log(e);
+    }
+
     rl.prompt();
   });
 }
 
 export function cleanInput(input: string): string[] {
   return input
-    .trim()                // remove leading/trailing whitespace
-    .toLowerCase()         // lowercase everything
-    .split(/\s+/)          // split on one or more whitespace characters
-    .filter(Boolean);      // remove empty strings just in case
+    .toLowerCase()
+    .trim()
+    .split(" ")
+    .filter((word) => word !== "");
 }
